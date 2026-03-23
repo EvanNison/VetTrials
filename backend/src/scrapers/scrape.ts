@@ -121,6 +121,19 @@ const SOURCE_OVERRIDES: Record<string, { urls: string[]; waitMs?: number; clickS
     urls: ["https://vethospital.okstate.edu/info-for-researchers/clinical-trials"],
     waitMs: 4000,
   },
+  // AVMA registry — StudyPages with JS pagination. Single page + aggressive scroll.
+  "AVMA": {
+    urls: ["https://veterinaryclinicaltrials.org/studies/?term~recruiting_status=R"],
+    waitMs: 5000,
+  },
+  // CUVS — hub page, trials on species sub-pages
+  "CUVS": {
+    urls: [
+      "https://www.cuvs.org/clinical_trials/canine_studies",
+      "https://www.cuvs.org/clinical_trials/feline_studies",
+    ],
+    waitMs: 4000,
+  },
 };
 
 async function fetchPage(url: string, waitMs: number = 2000): Promise<string> {
@@ -137,24 +150,47 @@ async function fetchPage(url: string, waitMs: number = 2000): Promise<string> {
     await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
     await page.waitForTimeout(1000);
 
-    // Try clicking common "load more" / "show all" buttons
-    for (const selector of [
+    // Aggressively click "Load More" / "Next" / pagination buttons until exhausted
+    const loadMoreSelectors = [
       'button:has-text("Load More")',
       'button:has-text("Show All")',
       'button:has-text("View All")',
       'a:has-text("Load More")',
       'a:has-text("Show All")',
       'a:has-text("View All")',
-    ]) {
-      try {
-        const btn = page.locator(selector).first();
-        if (await btn.isVisible({ timeout: 500 })) {
-          await btn.click();
-          await page.waitForTimeout(2000);
+      'button:has-text("Next")',
+      'a:has-text("Next")',
+      'a[aria-label="Next"]',
+      'button[aria-label="Next page"]',
+      '.pagination a:last-child',
+    ];
+
+    // Keep clicking load-more/next and scrolling for up to 30 iterations
+    // Handles both button-based pagination and infinite scroll
+    let lastHeight = await page.evaluate(() => document.body.scrollHeight);
+    for (let attempt = 0; attempt < 30; attempt++) {
+      let clicked = false;
+      for (const selector of loadMoreSelectors) {
+        try {
+          const btn = page.locator(selector).first();
+          if (await btn.isVisible({ timeout: 500 })) {
+            await btn.click();
+            await page.waitForTimeout(2000);
+            clicked = true;
+            break;
+          }
+        } catch {
+          // Button not found
         }
-      } catch {
-        // Button not found, that's fine
       }
+
+      // Also try infinite scroll
+      await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
+      await page.waitForTimeout(2000);
+      const newHeight = await page.evaluate(() => document.body.scrollHeight);
+
+      if (!clicked && newHeight === lastHeight) break; // Nothing new loaded
+      lastHeight = newHeight;
     }
 
     const html = await page.content();
