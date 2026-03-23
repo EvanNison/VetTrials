@@ -1,21 +1,18 @@
-run = "cd backend && npx tsx src/api/server.ts & cd frontend && npm run dev"
+run = "sh -lc '(cd backend && npx tsx src/api/server.ts) & (cd frontend && npm run dev) & wait -n'"
 
 [nix]
 channel = "stable-24_05"
 
 [env]
-PORT = "8000"
+BACKEND_PORT = "8000"
 
 [[ports]]
 localPort = 3000
 externalPort = 80
-exposeLocalhost = true
 
 [[ports]]
 localPort = 8000
-externalPort = 8000
-exposeLocalhost = true
 
 [deployment]
-run = ["sh", "-c", "cd backend && npx tsx src/api/server.ts & cd frontend && npm run start"]
-build = ["sh", "-c", "cd backend && npm install && npx prisma generate && cd ../frontend && npm install && npm run build"]
+build = ["sh", "-lc", "cd backend && npm ci && npx prisma generate && npx prisma migrate deploy && cd ../frontend && npm ci && npm run build"]
+run = ["sh", "-lc", "(cd backend && npx tsx src/api/server.ts) & (cd frontend && npm run start -- --hostname 0.0.0.0 --port 3000) & wait -n"]

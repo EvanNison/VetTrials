@@ -7,7 +7,7 @@ import { sourcesRouter } from "./routes/sources.js";
 import { subscriptionsRouter } from "./routes/subscriptions.js";
 
 const app = express();
-const PORT = parseInt(process.env.PORT || "8000", 10);
+const PORT = parseInt(process.env.BACKEND_PORT || process.env.PORT || "8000", 10);
 
 app.use(cors({
   origin: process.env.NODE_ENV === "production"
@@ -46,6 +46,6 @@ import("../jobs/scheduler.js").catch((e) =>
   console.error("[API] Failed to load scheduler:", e)
 );
 
-app.listen(PORT, () => {
-  console.log(`[API] VetTrials API running on http://localhost:${PORT}`);
+app.listen(PORT, "0.0.0.0", () => {
+  console.log(`[API] VetTrials API running on http://0.0.0.0:${PORT}`);
 });

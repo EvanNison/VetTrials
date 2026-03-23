@@ -12,7 +12,11 @@ let browser: Browser | null = null;
 
 async function getBrowser(): Promise<Browser> {
   if (!browser || !browser.isConnected()) {
-    browser = await chromium.launch({ headless: true });
+    const launchOptions: Record<string, unknown> = { headless: true };
+    if (process.env.CHROME_PATH) {
+      launchOptions.executablePath = process.env.CHROME_PATH;
+    }
+    browser = await chromium.launch(launchOptions);
   }
   return browser;
 }

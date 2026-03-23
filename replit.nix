@@ -24,7 +24,6 @@
   ];
 
   env = {
-    PLAYWRIGHT_BROWSERS_PATH = "${pkgs.chromium}/bin";
     PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD = "1";
     CHROME_PATH = "${pkgs.chromium}/bin/chromium";
   };

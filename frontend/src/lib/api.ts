@@ -1,6 +1,6 @@
 import type { Trial, FilterData, TrialSearchResponse, SourceStatus } from "@/types";
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || "";
 
 export interface SearchParams {
   q?: string;
