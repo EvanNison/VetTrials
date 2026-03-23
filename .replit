@@ -1,0 +1,25 @@
+run = "cd backend && npx tsx src/api/server.ts & cd frontend && npm run dev"
+
+[nix]
+channel = "stable-24_05"
+
+[nix.packages]
+nodejs = "nodejs_22"
+postgresql = "postgresql_17"
+
+[env]
+PORT = "8000"
+
+[[ports]]
+localPort = 3000
+externalPort = 80
+exposeLocalhost = true
+
+[[ports]]
+localPort = 8000
+externalPort = 8000
+exposeLocalhost = true
+
+[deployment]
+run = ["sh", "-c", "cd backend && npx tsx src/api/server.ts & cd frontend && npm run start"]
+build = ["sh", "-c", "cd backend && npm install && npx prisma generate && cd ../frontend && npm install && npm run build"]
