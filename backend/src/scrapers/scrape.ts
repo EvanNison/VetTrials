@@ -53,43 +53,73 @@ const SOURCE_OVERRIDES: Record<string, { urls: string[]; waitMs?: number; clickS
     urls: ["https://cvm.msu.edu/hospital/veterinarians/clinical-trials"],
     waitMs: 5000,
   },
-  // Purdue — try clicking species filter to load all
+  // Purdue — hub page links to species sub-pages
   "Purdue": {
-    urls: ["https://vet.purdue.edu/ctr/clinical-research/veterinary-clinical-trials.php"],
-    waitMs: 4000,
-  },
-  // UGA — searchable interface, try to load all
-  "UGA": {
-    urls: ["https://vet.uga.edu/research/clinical-trials/"],
-    waitMs: 5000,
-  },
-  // UF — may need more wait time for JS render
-  "UF": {
-    urls: ["https://research.vetmed.ufl.edu/clinical-trials/"],
-    waitMs: 5000,
-  },
-  // Kansas State
-  "Kansas State": {
-    urls: ["https://www.ksvhc.org/services/clinical-trials/"],
-    waitMs: 4000,
-  },
-  // Oregon State — try the broader vet hospital page too
-  "Oregon State": {
     urls: [
-      "https://vetmed.oregonstate.edu/hospital/oncology/clinical-trials",
-      "https://vetmed.oregonstate.edu/hospital/clinical-trials",
+      "https://vet.purdue.edu/ctr/clinical-research/canine.php",
+      "https://vet.purdue.edu/ctr/clinical-research/feline.php",
+      "https://vet.purdue.edu/ctr/clinical-research/equine.php",
+      "https://vet.purdue.edu/ctr/clinical-research/avian.php",
     ],
     waitMs: 3000,
   },
-  // OVC
-  "OVC": {
-    urls: ["https://ovc.uoguelph.ca/clinicaltrials/"],
+  // UGA — main page is FAQ, actual trials at search/archive page
+  "UGA": {
+    urls: [
+      "https://vet.uga.edu/search-clinical-trials/",
+      "https://vet.uga.edu/clinical-trial/",
+    ],
     waitMs: 5000,
   },
-  // NC State — try both the main page and look for trials
+  // UF — hub page, trials on deeper department pages
+  "UF": {
+    urls: [
+      "https://research.vetmed.ufl.edu/clinical-trials/",
+      "https://research.vetmed.ufl.edu/clinical-trials/small-animal/",
+      "https://research.vetmed.ufl.edu/clinical-trials/oncology/",
+    ],
+    waitMs: 4000,
+  },
+  // Kansas State — hub links to current trials sub-page
+  "Kansas State": {
+    urls: ["https://www.ksvhc.org/services/clinical-trials/current-trials/"],
+    waitMs: 4000,
+  },
+  // Oregon State — try cleaner canonical URL
+  "Oregon State": {
+    urls: [
+      "https://vetmed.oregonstate.edu/oncology-clinical-trials",
+      "https://vetmed.oregonstate.edu/hospital/oncology/clinical-trials",
+    ],
+    waitMs: 3000,
+  },
+  // OVC — landing page points to species sub-pages on different subdomain
+  "OVC": {
+    urls: [
+      "https://ovcclinicaltrials.uoguelph.ca/active-canine-clinical-trials/",
+      "https://ovcclinicaltrials.uoguelph.ca/active-feline-clinical-trials/",
+      "https://ovcclinicaltrials.uoguelph.ca/large-animal/",
+    ],
+    waitMs: 4000,
+  },
+  // NC State — directory page, trials at species sub-pages
   "NC State": {
-    urls: ["https://cvm.ncsu.edu/research/clinical-trials/"],
-    waitMs: 5000,
+    urls: [
+      "https://cvm.ncsu.edu/research/clinical-trials/dogs/",
+      "https://cvm.ncsu.edu/research/clinical-trials/cats/",
+      "https://cvm.ncsu.edu/research/clinical-trials/horses/",
+    ],
+    waitMs: 4000,
+  },
+  // VA-MD — overview page, actual studies at current-studies sub-page
+  "VA-MD": {
+    urls: ["https://research.vetmed.vt.edu/clinical-trials/current-studies.html"],
+    waitMs: 4000,
+  },
+  // Oklahoma State — college homepage, actual trials at hospital page
+  "Oklahoma State": {
+    urls: ["https://vethospital.okstate.edu/info-for-researchers/clinical-trials"],
+    waitMs: 4000,
   },
 };
 
@@ -134,29 +164,43 @@ async function fetchPage(url: string, waitMs: number = 2000): Promise<string> {
   }
 }
 
-// Fetch multiple pages and combine their HTML for sources that spread trials across sub-pages
-async function fetchSourcePages(source: { shortName: string; url: string }): Promise<string> {
+// For multi-page sources, fetch and extract each page separately to avoid token limits
+async function fetchAndExtractMultiPage(
+  source: { shortName: string; url: string; name: string }
+): Promise<{ allTrials: TrialExtraction[]; totalTokens: number; combinedHtml: string } | null> {
   const override = SOURCE_OVERRIDES[source.shortName];
-
-  if (!override) {
-    return fetchPage(source.url);
-  }
+  if (!override) return null;
 
   const urls = override.urls;
   const waitMs = override.waitMs || 2000;
+  const allTrials: TrialExtraction[] = [];
+  let totalTokens = 0;
   const htmlParts: string[] = [];
+  const seenTitles = new Set<string>();
 
   for (const url of urls) {
     try {
       console.log(`[SCRAPE]   Fetching sub-page: ${url}`);
       const html = await fetchPage(url, waitMs);
       htmlParts.push(html);
+
+      const { trials, tokensUsed } = await extractTrials(html, source.name);
+      totalTokens += tokensUsed;
+
+      // Deduplicate across sub-pages
+      for (const trial of trials) {
+        if (!seenTitles.has(trial.title)) {
+          seenTitles.add(trial.title);
+          allTrials.push(trial);
+        }
+      }
+      console.log(`[SCRAPE]   Sub-page ${url}: ${trials.length} trials`);
     } catch (err) {
       console.warn(`[SCRAPE]   Sub-page failed: ${url} — ${err instanceof Error ? err.message : err}`);
     }
   }
 
-  return htmlParts.join("\n<!-- PAGE BREAK -->\n");
+  return { allTrials, totalTokens, combinedHtml: htmlParts.join("\n") };
 }
 
 function hasChanged(
@@ -315,39 +359,39 @@ export async function scrapeSource(source: Source): Promise<void> {
 
   try {
     console.log(`[SCRAPE] Fetching ${source.name} (${source.url})`);
-    const html = await fetchSourcePages(source);
-    const htmlHash = hashHtml(html);
 
-    // Check if page has changed since last scrape
-    const lastLog = await prisma.scrapeLog.findFirst({
-      where: { sourceId: source.id, status: "success" },
-      orderBy: { startedAt: "desc" },
-    });
+    // Multi-page sources: extract per sub-page to avoid token limits
+    const override = SOURCE_OVERRIDES[source.shortName];
+    let trials: TrialExtraction[];
+    let tokensUsed: number;
+    let html: string;
 
-    if (lastLog?.rawHtmlHash === htmlHash) {
-      console.log(`[SCRAPE] ${source.name}: page unchanged, skipping extraction`);
-      await prisma.scrapeLog.update({
-        where: { id: log.id },
-        data: {
-          status: "success",
-          completedAt: new Date(),
-          rawHtmlHash: htmlHash,
-          rawHtmlSize: html.length,
-          trialsFound: 0,
-          trialsNew: 0,
-          trialsUpdated: 0,
-          trialsRemoved: 0,
-        },
-      });
-      await prisma.source.update({
-        where: { id: source.id },
-        data: { lastScraped: new Date(), lastSuccess: new Date() },
-      });
-      return;
+    if (override && override.urls.length > 1) {
+      const multiResult = await fetchAndExtractMultiPage(source);
+      if (!multiResult || multiResult.allTrials.length === 0) {
+        // Fall back to single-page extraction
+        html = await fetchPage(source.url, override.waitMs || 2000);
+        const result = await extractTrials(html, source.name);
+        trials = result.trials;
+        tokensUsed = result.tokensUsed;
+      } else {
+        trials = multiResult.allTrials;
+        tokensUsed = multiResult.totalTokens;
+        html = multiResult.combinedHtml;
+      }
+    } else if (override) {
+      html = await fetchPage(override.urls[0], override.waitMs || 2000);
+      const result = await extractTrials(html, source.name);
+      trials = result.trials;
+      tokensUsed = result.tokensUsed;
+    } else {
+      html = await fetchPage(source.url);
+      const result = await extractTrials(html, source.name);
+      trials = result.trials;
+      tokensUsed = result.tokensUsed;
     }
 
-    console.log(`[SCRAPE] Extracting trials from ${source.name}`);
-    const { trials, tokensUsed } = await extractTrials(html, source.name);
+    const htmlHash = hashHtml(html);
     console.log(`[SCRAPE] ${source.name}: extracted ${trials.length} trials (${tokensUsed} tokens)`);
 
     const results = await processExtractionResults(source, trials);
