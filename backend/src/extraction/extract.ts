@@ -70,6 +70,14 @@ export async function extractTrials(
     }
   }
 
-  const validated = z.array(TrialExtractionSchema).parse(parsed);
+  // Coerce common Claude output issues before Zod validation
+  const coerced = (parsed as Record<string, unknown>[]).map((trial) => ({
+    ...trial,
+    species: Array.isArray(trial.species) ? trial.species : trial.species ? [trial.species] : ["dog"],
+    condition_category: trial.condition_category || "other",
+    enrollment_status: trial.enrollment_status || "unknown",
+  }));
+
+  const validated = z.array(TrialExtractionSchema).parse(coerced);
   return { trials: validated, tokensUsed };
 }
