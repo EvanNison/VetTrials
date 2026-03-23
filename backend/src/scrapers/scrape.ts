@@ -28,21 +28,135 @@ function hashHtml(html: string): string {
   return createHash("sha256").update(html).digest("hex");
 }
 
-async function fetchPage(url: string): Promise<string> {
+// Sources where we override the URL or need to scrape multiple pages
+const SOURCE_OVERRIDES: Record<string, { urls: string[]; waitMs?: number; clickSelectors?: string[] }> = {
+  // UC Davis uses StudyPages — main page is just a portal
+  "UC Davis": {
+    urls: ["https://studypages.com/ucdavisvet/"],
+    waitMs: 5000,
+  },
+  // Texas A&M also uses StudyPages
+  "TAMU": {
+    urls: ["https://studypages.com/tamuvetmed/home/"],
+    waitMs: 5000,
+  },
+  // Wisconsin organizes by specialty — scrape main + oncology sub-page
+  "Wisconsin": {
+    urls: [
+      "https://uwveterinarycare.wisc.edu/veterinary-clinical-studies/",
+      "https://uwveterinarycare.wisc.edu/veterinary-clinical-studies/oncology/",
+    ],
+    waitMs: 3000,
+  },
+  // MSU needs a longer timeout
+  "MSU": {
+    urls: ["https://cvm.msu.edu/hospital/veterinarians/clinical-trials"],
+    waitMs: 5000,
+  },
+  // Purdue — try clicking species filter to load all
+  "Purdue": {
+    urls: ["https://vet.purdue.edu/ctr/clinical-research/veterinary-clinical-trials.php"],
+    waitMs: 4000,
+  },
+  // UGA — searchable interface, try to load all
+  "UGA": {
+    urls: ["https://vet.uga.edu/research/clinical-trials/"],
+    waitMs: 5000,
+  },
+  // UF — may need more wait time for JS render
+  "UF": {
+    urls: ["https://research.vetmed.ufl.edu/clinical-trials/"],
+    waitMs: 5000,
+  },
+  // Kansas State
+  "Kansas State": {
+    urls: ["https://www.ksvhc.org/services/clinical-trials/"],
+    waitMs: 4000,
+  },
+  // Oregon State — try the broader vet hospital page too
+  "Oregon State": {
+    urls: [
+      "https://vetmed.oregonstate.edu/hospital/oncology/clinical-trials",
+      "https://vetmed.oregonstate.edu/hospital/clinical-trials",
+    ],
+    waitMs: 3000,
+  },
+  // OVC
+  "OVC": {
+    urls: ["https://ovc.uoguelph.ca/clinicaltrials/"],
+    waitMs: 5000,
+  },
+  // NC State — try both the main page and look for trials
+  "NC State": {
+    urls: ["https://cvm.ncsu.edu/research/clinical-trials/"],
+    waitMs: 5000,
+  },
+};
+
+async function fetchPage(url: string, waitMs: number = 2000): Promise<string> {
   const b = await getBrowser();
   const page = await b.newPage({
     userAgent: USER_AGENT,
   });
 
   try {
-    await page.goto(url, { waitUntil: "networkidle", timeout: 30000 });
-    // Wait a bit for any lazy content
-    await page.waitForTimeout(2000);
+    await page.goto(url, { waitUntil: "networkidle", timeout: 45000 });
+    await page.waitForTimeout(waitMs);
+
+    // Try scrolling to bottom to trigger lazy loading
+    await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
+    await page.waitForTimeout(1000);
+
+    // Try clicking common "load more" / "show all" buttons
+    for (const selector of [
+      'button:has-text("Load More")',
+      'button:has-text("Show All")',
+      'button:has-text("View All")',
+      'a:has-text("Load More")',
+      'a:has-text("Show All")',
+      'a:has-text("View All")',
+    ]) {
+      try {
+        const btn = page.locator(selector).first();
+        if (await btn.isVisible({ timeout: 500 })) {
+          await btn.click();
+          await page.waitForTimeout(2000);
+        }
+      } catch {
+        // Button not found, that's fine
+      }
+    }
+
     const html = await page.content();
     return html;
   } finally {
     await page.close();
   }
+}
+
+// Fetch multiple pages and combine their HTML for sources that spread trials across sub-pages
+async function fetchSourcePages(source: { shortName: string; url: string }): Promise<string> {
+  const override = SOURCE_OVERRIDES[source.shortName];
+
+  if (!override) {
+    return fetchPage(source.url);
+  }
+
+  const urls = override.urls;
+  const waitMs = override.waitMs || 2000;
+  const htmlParts: string[] = [];
+
+  for (const url of urls) {
+    try {
+      console.log(`[SCRAPE]   Fetching sub-page: ${url}`);
+      const html = await fetchPage(url, waitMs);
+      htmlParts.push(html);
+    } catch (err) {
+      console.warn(`[SCRAPE]   Sub-page failed: ${url} — ${err instanceof Error ? err.message : err}`);
+    }
+  }
+
+  return htmlParts.join("\n<!-- PAGE BREAK -->\n");
 }
 
 function hasChanged(
@@ -201,7 +315,7 @@ export async function scrapeSource(source: Source): Promise<void> {
 
   try {
     console.log(`[SCRAPE] Fetching ${source.name} (${source.url})`);
-    const html = await fetchPage(source.url);
+    const html = await fetchSourcePages(source);
     const htmlHash = hashHtml(html);
 
     // Check if page has changed since last scrape

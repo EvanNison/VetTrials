@@ -3,10 +3,6 @@ run = "cd backend && npx tsx src/api/server.ts & cd frontend && npm run dev"
 [nix]
 channel = "stable-24_05"
 
-[nix.packages]
-nodejs = "nodejs_22"
-postgresql = "postgresql_17"
-
 [env]
 PORT = "8000"
 
