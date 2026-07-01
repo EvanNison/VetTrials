@@ -1,0 +1,50 @@
+{
+  "name": "backend",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "engines": {
+    "node": ">=20.19.0"
+  },
+  "directories": {
+    "test": "tests"
+  },
+  "scripts": {
+    "dev": "tsx watch src/api/server.ts",
+    "start": "tsx src/api/server.ts",
+    "seed": "tsx src/db/seed.ts",
+    "scrape": "tsx src/scrapers/test-single.ts",
+    "scrape:all": "tsx src/scrapers/scrape-all.ts",
+    "db:migrate": "prisma migrate dev",
+    "db:generate": "prisma generate",
+    "setup-browser": "PLAYWRIGHT_BROWSERS_PATH=0 npx playwright install chromium",
+    "postinstall": "prisma generate"
+  },
+  "keywords": [],
+  "author": "Evan Nison",
+  "license": "AGPL-3.0-or-later",
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.80.0",
+    "@prisma/adapter-pg": "^7.5.0",
+    "@prisma/client": "^7.5.0",
+    "cors": "^2.8.6",
+    "crypto-js": "^4.2.0",
+    "dotenv": "^17.3.1",
+    "express": "^5.2.1",
+    "express-rate-limit": "^8.5.1",
+    "node-cron": "^4.2.1",
+    "pg": "^8.20.0",
+    "playwright": "^1.58.2",
+    "prisma": "^7.5.0",
+    "zod": "^4.3.6"
+  },
+  "devDependencies": {
+    "@types/cors": "^2.8.19",
+    "@types/express": "^5.0.6",
+    "@types/node": "^25.5.0",
+    "@types/node-cron": "^3.0.11",
+    "@types/pg": "^8.20.0",
+    "tsx": "^4.21.0",
+    "typescript": "^6.0.2"
+  }
+}

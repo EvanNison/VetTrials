@@ -1,0 +1,11 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Security vulnerability
+    url: https://github.com/EvanNison/VetTrials/security/policy
+    about: Please report security issues privately — see SECURITY.md
+  - name: Takedown request (institutions only)
+    url: mailto:evan@nisonco.com
+    about: If you represent an institution and want your trials removed, email us directly
+  - name: Question or general discussion
+    url: mailto:evan@nisonco.com
+    about: For things that aren't bugs or feature requests

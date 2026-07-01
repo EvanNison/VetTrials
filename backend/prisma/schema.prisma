@@ -1,0 +1,144 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Source {
+  id           Int       @id @default(autoincrement())
+  name         String
+  shortName    String    @map("short_name")
+  url          String    @unique
+  tier         Int       @default(1)
+  scrapeMethod String    @default("playwright") @map("scrape_method")
+  isActive     Boolean   @default(true) @map("is_active")
+  lastScraped  DateTime? @map("last_scraped")
+  lastSuccess  DateTime? @map("last_success")
+  lastError    String?   @map("last_error")
+  trialCount   Int       @default(0) @map("trial_count")
+  createdAt    DateTime  @default(now()) @map("created_at")
+  updatedAt    DateTime  @updatedAt @map("updated_at")
+
+  trials     Trial[]
+  scrapeLogs ScrapeLog[]
+
+  @@index([isActive])
+  @@map("sources")
+}
+
+model Trial {
+  id       Int    @id @default(autoincrement())
+  sourceId Int    @map("source_id")
+  source   Source @relation(fields: [sourceId], references: [id])
+
+  title            String
+  sourceUrl        String?  @map("source_url")
+  avmaRegistryId   String?  @map("avma_registry_id")
+
+  species           String[] @default([])
+  conditionCategory String   @default("other") @map("condition_category")
+  conditionSpecific String?  @map("condition_specific")
+
+  enrollmentStatus String @default("unknown") @map("enrollment_status")
+
+  eligibilitySummary    String? @map("eligibility_summary")
+  eligibilityDetails    String? @map("eligibility_details")
+  principalInvestigator String? @map("principal_investigator")
+  contactEmail          String? @map("contact_email")
+  contactPhone          String? @map("contact_phone")
+  financialInfo         String? @map("financial_info")
+
+  locationCity  String?  @map("location_city")
+  locationState String?  @map("location_state")
+  locationLat   Decimal? @map("location_lat") @db.Decimal(10, 7)
+  locationLng   Decimal? @map("location_lng") @db.Decimal(10, 7)
+
+  firstSeen    DateTime @default(now()) @map("first_seen")
+  lastSeen     DateTime @default(now()) @map("last_seen")
+  lastChanged  DateTime @default(now()) @map("last_changed")
+  isActive     Boolean  @default(true) @map("is_active")
+  contentHash  String?  @map("content_hash")
+  rawExtraction Json?   @map("raw_extraction") @db.JsonB
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  notificationLogs NotificationLog[]
+
+  @@unique([sourceId, title])
+  @@index([conditionCategory])
+  @@index([enrollmentStatus])
+  @@index([isActive])
+  @@index([locationState])
+  @@map("trials")
+}
+
+model ScrapeLog {
+  id          Int       @id @default(autoincrement())
+  sourceId    Int       @map("source_id")
+  source      Source    @relation(fields: [sourceId], references: [id])
+  startedAt   DateTime  @default(now()) @map("started_at")
+  completedAt DateTime? @map("completed_at")
+  status      String    @default("running")
+
+  trialsFound   Int? @default(0) @map("trials_found")
+  trialsNew     Int? @default(0) @map("trials_new")
+  trialsUpdated Int? @default(0) @map("trials_updated")
+  trialsRemoved Int? @default(0) @map("trials_removed")
+
+  rawHtmlHash      String? @map("raw_html_hash")
+  rawHtmlSize      Int?    @map("raw_html_size")
+  extractionModel  String? @default("claude-haiku-4-5-20251001") @map("extraction_model")
+  extractionTokens Int?    @map("extraction_tokens")
+  errorMessage     String? @map("error_message")
+  errorStack       String? @map("error_stack")
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@index([sourceId])
+  @@index([status])
+  @@index([startedAt(sort: Desc)])
+  @@map("scrape_logs")
+}
+
+model Subscription {
+  id               Int       @id @default(autoincrement())
+  email            String
+  speciesFilter    String[]  @map("species_filter")
+  conditionFilter  String[]  @map("condition_filter")
+  stateFilter      String[]  @map("state_filter")
+  isActive         Boolean   @default(true) @map("is_active")
+  lastNotified     DateTime? @map("last_notified")
+  unsubscribeToken String    @unique @default(uuid()) @map("unsubscribe_token")
+  createdAt        DateTime  @default(now()) @map("created_at")
+  updatedAt        DateTime  @updatedAt @map("updated_at")
+
+  notificationLogs NotificationLog[]
+
+  @@index([isActive])
+  @@index([email])
+  @@map("subscriptions")
+}
+
+model NotificationLog {
+  id             Int          @id @default(autoincrement())
+  subscriptionId Int          @map("subscription_id")
+  subscription   Subscription @relation(fields: [subscriptionId], references: [id])
+  trialId        Int          @map("trial_id")
+  trial          Trial        @relation(fields: [trialId], references: [id])
+  sentAt         DateTime     @default(now()) @map("sent_at")
+
+  @@unique([subscriptionId, trialId])
+  @@map("notification_log")
+}
+
+model Setting {
+  key       String   @id
+  value     String
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("settings")
+}

@@ -1,0 +1,19 @@
+node_modules/
+dist/
+.next/
+.env
+.env.local
+*.log
+logs/
+.DS_Store
+coverage/
+.turbo/
+.mcp.json
+backend/src/generated/
+
+# Private working notes — never published to GitHub
+notes/
+.notes/
+
+# TypeScript incremental build cache
+*.tsbuildinfo
