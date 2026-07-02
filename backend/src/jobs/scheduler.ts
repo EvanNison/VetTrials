@@ -5,7 +5,11 @@ import prisma from "../db/client.js";
 
 let currentTask: ScheduledTask | null = null;
 let currentCron = "0 3 * * *"; // Default: daily at 3 AM ET
-let isEnabled = true;
+let isEnabled = false;
+
+function shouldEnableInternalSchedulerByDefault(): boolean {
+  return process.env.ENABLE_INTERNAL_SCHEDULER === "true";
+}
 
 function startSchedule(cronExpression: string): void {
   // Validate cron expression
@@ -78,7 +82,9 @@ function describeNextRun(cronExpr: string): string {
   return cronExpr;
 }
 
-// Initialize: load persisted schedule from DB, or use default
+// Initialize: load persisted schedule from DB, or use env-controlled default.
+// Replit Autoscale processes are not guaranteed to stay alive, so production
+// should use Replit Scheduled Deployments unless ENABLE_INTERNAL_SCHEDULER=true.
 async function init(): Promise<void> {
   try {
     const [cronSetting, enabledSetting] = await Promise.all([
@@ -87,7 +93,10 @@ async function init(): Promise<void> {
     ]);
 
     const cronExpr = cronSetting?.value || "0 3 * * *";
-    const enabled = enabledSetting?.value !== "false";
+    const enabled =
+      enabledSetting?.value !== undefined
+        ? enabledSetting.value !== "false"
+        : shouldEnableInternalSchedulerByDefault();
 
     if (enabled) {
       startSchedule(cronExpr);

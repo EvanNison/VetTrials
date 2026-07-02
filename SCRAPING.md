@@ -204,32 +204,23 @@ codex "Review this change detection logic for a trials scraper. I compare extrac
 
 ## Scheduled Job Configuration
 
-```typescript
-import cron from 'node-cron';
+For Replit Autoscale deployments, use a Replit Scheduled Deployment instead of
+the app's internal `node-cron` scheduler. Autoscale web processes can scale down,
+so an in-process cron is not a reliable production trigger unless the app is
+running on an always-on process.
 
-// Run full scrape daily at 3 AM ET
-cron.schedule('0 3 * * *', async () => {
-  console.log('[SCRAPE] Starting daily scrape cycle');
-  
-  const sources = await db.sources.findMany({ where: { is_active: true } });
-  
-  for (const source of sources) {
-    try {
-      await scrapeAndExtract(source);
-      // 5-second delay between sources to be respectful
-      await sleep(5000);
-    } catch (error) {
-      console.error(`[SCRAPE] Failed for ${source.name}:`, error);
-      // Continue to next source — don't let one failure stop the whole cycle
-    }
-  }
-  
-  console.log('[SCRAPE] Daily scrape cycle complete');
-  
-  // Run alert matching after all scrapes complete
-  await processAlerts();
-});
+Recommended Scheduled Deployment settings:
+
+```bash
+# Build command
+bash /home/runner/workspace/scrape-build.sh
+
+# Run command
+cd /home/runner/workspace/backend && npm run scrape:all
 ```
+
+The internal scheduler defaults off unless `ENABLE_INTERNAL_SCHEDULER=true` is
+set or the database explicitly stores `scrape_enabled=true`.
 
 ---
 

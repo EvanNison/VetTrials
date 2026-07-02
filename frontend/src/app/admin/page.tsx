@@ -679,19 +679,28 @@ function SchedulePanel() {
         </div>
       </div>
 
-      {/* VM/internal scheduling info */}
+      {/* Production scheduling info */}
       <div className="bg-blue-50 rounded-xl border border-blue-200 p-6">
-        <h3 className="text-sm font-semibold text-blue-900 mb-2">Reserved VM / Internal Scheduling</h3>
+        <h3 className="text-sm font-semibold text-blue-900 mb-2">Production Scheduling</h3>
         <p className="text-sm text-blue-800 mb-3">
-          When running on a reserved VM, the cron schedule above runs internally via node-cron.
-          No external scheduler needed; the app manages its own schedule as long as the process stays alive.
+          On Replit Autoscale, use a Scheduled Deployment for reliable scrapes without keeping
+          a Reserved VM running. Internal node-cron is only reliable when the web process is
+          deliberately kept alive.
         </p>
         <ul className="text-sm text-blue-700 space-y-1 list-disc list-inside">
-          <li>Schedule persists across restarts (saved to database)</li>
-          <li>Use a process manager (pm2, systemd) to keep the app running</li>
-          <li>For external cron (e.g., system crontab), disable the internal schedule and use:
+          <li>Scheduled Deployment build command:
+            <code className="block mt-1 bg-blue-100 px-1.5 py-0.5 rounded text-xs font-mono break-all">
+              bash /home/runner/workspace/scrape-build.sh
+            </code>
+          </li>
+          <li>Scheduled Deployment run command:
+            <code className="block mt-1 bg-blue-100 px-1.5 py-0.5 rounded text-xs font-mono break-all">
+              cd /home/runner/workspace/backend && npm run scrape:all
+            </code>
+          </li>
+          <li>Enable internal scheduling only for an always-on process by setting
             <code className="ml-1 bg-blue-100 px-1.5 py-0.5 rounded text-xs font-mono">
-              curl -X POST -H &quot;X-Admin-Secret: $SECRET&quot; http://localhost:8080/api/admin/scrape
+              ENABLE_INTERNAL_SCHEDULER=true
             </code>
           </li>
         </ul>
