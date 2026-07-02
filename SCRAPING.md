@@ -204,19 +204,18 @@ codex "Review this change detection logic for a trials scraper. I compare extrac
 
 ## Scheduled Job Configuration
 
-For Replit Autoscale deployments, use a Replit Scheduled Deployment instead of
-the app's internal `node-cron` scheduler. Autoscale web processes can scale down,
-so an in-process cron is not a reliable production trigger unless the app is
-running on an always-on process.
+For Replit Autoscale deployments, keep the web app on Autoscale and run the
+scraper from GitHub Actions. This avoids a Reserved VM and avoids converting the
+live web deployment to Replit's Scheduled deployment type.
 
-Recommended Scheduled Deployment settings:
+The scheduled workflow lives at `.github/workflows/scrape.yml`. It runs daily at
+07:00 UTC and can also be started manually from GitHub Actions.
 
-```bash
-# Build command
-bash /home/runner/workspace/scrape-build.sh
+Required GitHub repository secrets:
 
-# Run command
-cd /home/runner/workspace/backend && npm run scrape:all
+```text
+DATABASE_URL
+ANTHROPIC_API_KEY
 ```
 
 The internal scheduler defaults off unless `ENABLE_INTERNAL_SCHEDULER=true` is

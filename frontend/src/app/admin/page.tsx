@@ -683,19 +683,19 @@ function SchedulePanel() {
       <div className="bg-blue-50 rounded-xl border border-blue-200 p-6">
         <h3 className="text-sm font-semibold text-blue-900 mb-2">Production Scheduling</h3>
         <p className="text-sm text-blue-800 mb-3">
-          On Replit Autoscale, use a Scheduled Deployment for reliable scrapes without keeping
-          a Reserved VM running. Internal node-cron is only reliable when the web process is
-          deliberately kept alive.
+          On Replit Autoscale, use the GitHub Actions scheduled scraper for reliable scrapes
+          without keeping a Reserved VM running. Internal node-cron is only reliable when the
+          web process is deliberately kept alive.
         </p>
         <ul className="text-sm text-blue-700 space-y-1 list-disc list-inside">
-          <li>Scheduled Deployment build command:
+          <li>Workflow:
             <code className="block mt-1 bg-blue-100 px-1.5 py-0.5 rounded text-xs font-mono break-all">
-              bash /home/runner/workspace/scrape-build.sh
+              .github/workflows/scrape.yml
             </code>
           </li>
-          <li>Scheduled Deployment run command:
+          <li>Scheduled command:
             <code className="block mt-1 bg-blue-100 px-1.5 py-0.5 rounded text-xs font-mono break-all">
-              cd /home/runner/workspace/backend && npm run scrape:all
+              npm run scrape:all
             </code>
           </li>
           <li>Enable internal scheduling only for an always-on process by setting
