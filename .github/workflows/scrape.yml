@@ -43,7 +43,7 @@ jobs:
 
       - name: Install backend dependencies
         working-directory: backend
-        run: npm ci --no-audit --no-fund
+        run: npm ci --include=dev --no-audit --no-fund
 
       - name: Install Playwright Chromium
         working-directory: backend
