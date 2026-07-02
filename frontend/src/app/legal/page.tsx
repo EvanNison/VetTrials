@@ -148,8 +148,8 @@ export default function LegalPage() {
           . Self-hosters are responsible for their own compliance with each
           source&apos;s terms of use and applicable law in their jurisdiction.
           The disclaimers and policies on this page apply to the canonical
-          hosted instance at vet-trials.replit.app and any future official
-          domain, not to forks or derivative deployments.
+          hosted instance at vettrials.org, not to forks or derivative
+          deployments.
         </p>
 
         <h2 className="text-xl font-semibold mt-8 mb-2">Contact</h2>

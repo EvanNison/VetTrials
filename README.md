@@ -4,7 +4,7 @@
 
 VetTrials scrapes and normalizes clinical trial listings from 30+ veterinary schools and institutions into a single searchable interface. It exists because veterinarians (especially oncologists) currently have to visit each institution's website individually to find trials for their patients.
 
-🌐 **Live demo:** https://vet-trials.replit.app
+🌐 **Live site:** https://vettrials.org
 📦 **Sources:** 30+ vet schools and registries — see [SOURCES.md](SOURCES.md)
 🔬 **Status:** Early. Active development. Contributions welcome.
 

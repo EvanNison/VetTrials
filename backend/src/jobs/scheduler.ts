@@ -4,7 +4,7 @@ import { scrapeAllSources } from "../scrapers/scrape.js";
 import prisma from "../db/client.js";
 
 let currentTask: ScheduledTask | null = null;
-let currentCron = "0 3 * * *"; // Default: daily at 3 AM ET
+let currentCron = "0 7 * * *"; // Default: daily at 07:00 UTC
 let isEnabled = false;
 
 function shouldEnableInternalSchedulerByDefault(): boolean {
@@ -84,7 +84,8 @@ function describeNextRun(cronExpr: string): string {
 
 // Initialize: load persisted schedule from DB, or use env-controlled default.
 // Replit Autoscale processes are not guaranteed to stay alive, so production
-// should use Replit Scheduled Deployments unless ENABLE_INTERNAL_SCHEDULER=true.
+// should use the GitHub Actions scheduled scraper unless
+// ENABLE_INTERNAL_SCHEDULER=true.
 async function init(): Promise<void> {
   try {
     const [cronSetting, enabledSetting] = await Promise.all([
@@ -92,7 +93,7 @@ async function init(): Promise<void> {
       prisma.setting.findUnique({ where: { key: "scrape_enabled" } }),
     ]);
 
-    const cronExpr = cronSetting?.value || "0 3 * * *";
+    const cronExpr = cronSetting?.value || "0 7 * * *";
     const enabled =
       enabledSetting?.value !== undefined
         ? enabledSetting.value !== "false"
@@ -106,9 +107,17 @@ async function init(): Promise<void> {
       console.log("[SCHEDULER] Schedule is disabled (persisted setting)");
     }
   } catch (err) {
-    // If settings table doesn't exist yet, use defaults
-    console.log("[SCHEDULER] Could not load persisted schedule, using defaults");
-    startSchedule("0 3 * * *");
+    // If settings cannot be loaded, keep the internal scheduler off unless it
+    // was explicitly requested by environment. Production cron runs from GitHub
+    // Actions.
+    if (shouldEnableInternalSchedulerByDefault()) {
+      console.log("[SCHEDULER] Could not load persisted schedule, using env default");
+      startSchedule("0 7 * * *");
+    } else {
+      currentCron = "0 7 * * *";
+      isEnabled = false;
+      console.log("[SCHEDULER] Could not load persisted schedule; internal scheduler disabled");
+    }
   }
 }
 

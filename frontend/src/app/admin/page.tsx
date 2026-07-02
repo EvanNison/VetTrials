@@ -594,11 +594,11 @@ function SchedulePanel() {
 
   const presets = [
     { label: "Every 6 hours", cron: "0 */6 * * *" },
-    { label: "Daily at 3 AM", cron: "0 3 * * *" },
+    { label: "Daily at 07:00 UTC", cron: "0 7 * * *" },
     { label: "Daily at midnight", cron: "0 0 * * *" },
-    { label: "Twice daily (3 AM & 3 PM)", cron: "0 3,15 * * *" },
+    { label: "Twice daily (07:00 & 19:00 UTC)", cron: "0 7,19 * * *" },
     { label: "Every 12 hours", cron: "0 */12 * * *" },
-    { label: "Weekly (Sunday 3 AM)", cron: "0 3 * * 0" },
+    { label: "Weekly (Sunday 07:00 UTC)", cron: "0 7 * * 0" },
   ];
 
   return (

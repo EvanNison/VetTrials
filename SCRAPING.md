@@ -16,7 +16,7 @@ Most sources need Playwright (headless Chromium) because vet school sites freque
 
 1. **Respect rate limits.** Never scrape more than 1 page per source per 24 hours. Add a 5-second delay between sources.
 
-2. **Set a proper User-Agent.** Use: `VetTrials/1.0 (+https://vet-trials.replit.app; evan@nisonco.com)` — be transparent about what we are.
+2. **Set a proper User-Agent.** Use: `VetTrials/1.0 (+https://vettrials.org; evan@nisonco.com)` — be transparent about what we are.
 
 3. **Handle redirects.** Some URLs in our sources list may redirect. Follow redirects but log when the final URL differs from the stored URL.
 
