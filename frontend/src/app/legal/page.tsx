@@ -1,9 +1,12 @@
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Legal & Takedown - VetTrials",
+  title: "Legal & Takedown",
   description:
     "VetTrials data sourcing policy, takedown procedure, and contact information for institutions.",
+  alternates: {
+    canonical: "/legal",
+  },
 };
 
 export default function LegalPage() {
@@ -134,22 +137,6 @@ export default function LegalPage() {
           trial eligibility, status, and details directly with the institution
           listed before making any treatment decisions for an animal in your
           care.
-        </p>
-
-        <h2 className="text-xl font-semibold mt-8 mb-2">Self-hosting</h2>
-        <p>
-          The VetTrials codebase is open source under{" "}
-          <a
-            href="https://www.gnu.org/licenses/agpl-3.0.html"
-            className="text-primary hover:underline"
-          >
-            AGPL-3.0
-          </a>
-          . Self-hosters are responsible for their own compliance with each
-          source&apos;s terms of use and applicable law in their jurisdiction.
-          The disclaimers and policies on this page apply to the canonical
-          hosted instance at vettrials.org, not to forks or derivative
-          deployments.
         </p>
 
         <h2 className="text-xl font-semibold mt-8 mb-2">Contact</h2>

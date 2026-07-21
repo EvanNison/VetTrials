@@ -1,9 +1,12 @@
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "About - VetTrials",
+  title: "About",
   description:
-    "VetTrials is a free, open-source aggregator of veterinary clinical trials from 30+ universities and institutions.",
+    "Learn how VetTrials aggregates veterinary clinical trials from 30+ universities and institutions.",
+  alternates: {
+    canonical: "/about",
+  },
 };
 
 export default function AboutPage() {
@@ -13,8 +16,8 @@ export default function AboutPage() {
 
       <section className="prose prose-sm max-w-none space-y-5 text-text">
         <p className="text-base">
-          VetTrials is a free, open-source aggregator of veterinary clinical
-          trials. We pull listings from 30+ veterinary schools and institutions
+          VetTrials is a free aggregator of veterinary clinical trials. We pull
+          listings from 30+ veterinary schools and institutions
           into a single searchable interface so vets, pet owners, and
           researchers can find studies in minutes instead of clicking through
           dozens of university websites.
@@ -70,25 +73,18 @@ export default function AboutPage() {
           </li>
         </ul>
 
-        <h2 className="text-xl font-semibold mt-8 mb-2">Open source</h2>
+        <h2 className="text-xl font-semibold mt-8 mb-2">
+          Feedback and feature requests
+        </h2>
         <p>
-          The entire codebase (scrapers, extraction prompts, API, and this UI)
-          is open source under{" "}
+          Have an idea that would make VetTrials more useful? Send a{" "}
           <a
-            href="https://www.gnu.org/licenses/agpl-3.0.html"
+            href="mailto:evan@nisonco.com?subject=VetTrials%20feature%20request"
             className="text-primary hover:underline"
           >
-            AGPL-3.0
+            feature request
           </a>
-          . You can self-host, fork, or contribute on{" "}
-          <a
-            href="https://github.com/EvanNison/VetTrials"
-            className="text-primary hover:underline"
-          >
-            GitHub
-          </a>
-          . The most useful contribution is adding a new source. See the
-          contributing guide in the repo.
+          , suggest a new data source, or tell us what is getting in your way.
         </p>
 
         <h2 className="text-xl font-semibold mt-8 mb-2">Who built this</h2>
