@@ -1,0 +1,10 @@
+[
+  {
+    "slug": "review-surface-test",
+    "title": "Review surface test (placeholder)",
+    "heading": "Review surface test (placeholder)",
+    "description": "A placeholder for checking the private VetTrials review surface.",
+    "canonical": "/resources/review-surface-test",
+    "body": "This placeholder checks how a resource page looks within VetTrials. It uses the site\u2019s existing header, footer and typography.\n\n## A native review page\n\nThis short section lets reviewers check heading size, paragraph spacing and reading width on desktop and mobile.\n\nFuture drafts can use this same private surface for review before a separate publication decision. No article is included here."
+  }
+]

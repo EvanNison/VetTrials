@@ -1,11 +1,8 @@
 import type { Metadata } from "next";
-import { GoogleAnalytics } from "@next/third-parties/google";
 import "./globals.css";
 import { Providers } from "@/components/Providers";
 import { SITE_NAME, SITE_URL } from "@/lib/site";
 
-const googleSiteVerification = process.env.GOOGLE_SITE_VERIFICATION;
-const googleAnalyticsId = process.env.NEXT_PUBLIC_GOOGLE_ANALYTICS_ID;
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
@@ -38,12 +35,10 @@ export const metadata: Metadata = {
       "Find recruiting veterinary clinical trials across 30+ institutions.",
   },
   robots: {
-    index: true,
-    follow: true,
+    index: false,
+    follow: false,
+    noarchive: true,
   },
-  verification: googleSiteVerification
-    ? { google: googleSiteVerification }
-    : undefined,
 };
 
 export default function RootLayout({
@@ -134,9 +129,6 @@ export default function RootLayout({
             </div>
           </footer>
         </Providers>
-        {googleAnalyticsId ? (
-          <GoogleAnalytics gaId={googleAnalyticsId} />
-        ) : null}
       </body>
     </html>
   );

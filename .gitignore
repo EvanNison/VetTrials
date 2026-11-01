@@ -17,3 +17,6 @@ notes/
 
 # TypeScript incremental build cache
 *.tsbuildinfo
+
+# Local-only review fixtures and recovery records
+review/
