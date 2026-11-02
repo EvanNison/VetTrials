@@ -29,8 +29,8 @@ externalPort = 8080
 
 [deployment]
 deploymentTarget = "cloudrun"
-build = ["bash", "/home/runner/workspace/build.sh"]
-run = ["bash", "/home/runner/workspace/start.sh"]
+build = ["bash", "/home/runner/workspace/scripts/build-web-release.sh"]
+run = ["bash", "/home/runner/workspace/scripts/start-web-release.sh"]
 
 [agent]
 expertMode = true
