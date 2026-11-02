@@ -2,6 +2,7 @@ import type { NextConfig } from "next";
 import path from "path";
 
 const nextConfig: NextConfig = {
+  poweredByHeader: false,
   allowedDevOrigins: [
     "*.kirk.replit.dev",
     "*.replit.dev",
@@ -9,6 +10,16 @@ const nextConfig: NextConfig = {
   ],
   turbopack: {
     root: path.resolve(__dirname),
+  },
+  async redirects() {
+    return [
+      {
+        source: "/:path*",
+        has: [{ type: "host", value: "www.vettrials.org" }],
+        destination: "https://vettrials.org/:path*",
+        permanent: true,
+      },
+    ];
   },
   async rewrites() {
     const backendUrl = process.env.BACKEND_URL || "http://localhost:8000";

@@ -1,11 +1,49 @@
 import type { Metadata } from "next";
+import { GoogleAnalytics } from "@next/third-parties/google";
 import "./globals.css";
 import { Providers } from "@/components/Providers";
+import { SITE_NAME, SITE_URL } from "@/lib/site";
+
+const googleSiteVerification = process.env.GOOGLE_SITE_VERIFICATION;
+const googleAnalyticsId = process.env.NEXT_PUBLIC_GOOGLE_ANALYTICS_ID;
 
 export const metadata: Metadata = {
-  title: "VetTrials - Veterinary Clinical Trials Search",
+  metadataBase: new URL(SITE_URL),
+  title: {
+    default: "VetTrials: Search Veterinary Clinical Trials",
+    template: `%s | ${SITE_NAME}`,
+  },
   description:
     "Search veterinary clinical trials from 30+ university and institutional sources. Find recruiting studies for dogs, cats, horses, and more.",
+  applicationName: SITE_NAME,
+  keywords: [
+    "veterinary clinical trials",
+    "animal clinical trials",
+    "dog clinical trials",
+    "cat clinical trials",
+    "veterinary research studies",
+  ],
+  openGraph: {
+    type: "website",
+    siteName: SITE_NAME,
+    url: SITE_URL,
+    title: "VetTrials: Search Veterinary Clinical Trials",
+    description:
+      "Find recruiting veterinary clinical trials for dogs, cats, horses, and other animals across 30+ institutions.",
+  },
+  twitter: {
+    card: "summary",
+    title: "VetTrials: Search Veterinary Clinical Trials",
+    description:
+      "Find recruiting veterinary clinical trials across 30+ institutions.",
+  },
+  robots: {
+    index: true,
+    follow: true,
+  },
+  verification: googleSiteVerification
+    ? { google: googleSiteVerification }
+    : undefined,
 };
 
 export default function RootLayout({
@@ -81,12 +119,10 @@ export default function RootLayout({
                   Legal &amp; Takedown
                 </a>
                 <a
-                  href="https://github.com/EvanNison/VetTrials"
-                  target="_blank"
-                  rel="noopener noreferrer"
+                  href="mailto:evan@nisonco.com?subject=VetTrials%20feature%20request"
                   className="hover:text-primary transition-colors"
                 >
-                  GitHub
+                  Request a feature
                 </a>
                 <a
                   href="mailto:evan@nisonco.com"
@@ -94,13 +130,13 @@ export default function RootLayout({
                 >
                   Contact
                 </a>
-                <span className="text-muted/70">
-                  Open source under AGPL-3.0
-                </span>
               </div>
             </div>
           </footer>
         </Providers>
+        {googleAnalyticsId ? (
+          <GoogleAnalytics gaId={googleAnalyticsId} />
+        ) : null}
       </body>
     </html>
   );
