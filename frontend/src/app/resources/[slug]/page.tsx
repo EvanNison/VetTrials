@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import resourceData from '@/content/resources.json';
 import { CopyBlocks, JsonLd } from '@/components/SeoContent';
+import { publicAbsoluteUrl } from '@/lib/site';
 
 type ResourceImage = { src: string; alt: string; width: number; height: number; credit: string; creditUrl: string; position?: string };
 type ResourceCta = { heading: string; text: string; primaryLabel: string; primaryHref: string; secondaryLabel?: string; secondaryHref?: string };
@@ -25,11 +26,13 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
   const resource = resources.find(r => r.slug === slug);
   if (!resource) notFound();
+  const canonical = publicAbsoluteUrl(resource.canonical);
+  const socialImage = resource.image ? { url: publicAbsoluteUrl(resource.image.src), width: resource.image.width, height: resource.image.height, alt: resource.image.alt } : undefined;
   return {
     title: { absolute: resource.title }, description: resource.description,
-    alternates: { canonical: resource.canonical }, robots: { index: false, follow: false, noarchive: true },
-    openGraph: { type: 'article', title: resource.title, description: resource.description, url: resource.canonical, siteName: 'VetTrials', ...(resource.image ? { images: [{ url: resource.image.src, width: resource.image.width, height: resource.image.height, alt: resource.image.alt }] } : {}) },
-    twitter: { card: resource.image ? 'summary_large_image' : 'summary', title: resource.title, description: resource.description },
+    alternates: { canonical }, robots: { index: false, follow: false, noarchive: true },
+    openGraph: { type: 'article', title: resource.title, description: resource.description, url: canonical, siteName: 'VetTrials', ...(socialImage ? { images: [socialImage] } : {}) },
+    twitter: { card: socialImage ? 'summary_large_image' : 'summary', title: resource.title, description: resource.description, ...(socialImage ? { images: [socialImage] } : {}) },
   };
 }
 export default async function ResourcePage({ params }: Props) {
@@ -37,6 +40,7 @@ export default async function ResourcePage({ params }: Props) {
   const resource = resources.find(r => r.slug === slug);
   if (!resource) notFound();
   const { image, cta } = resource;
+  const canonical = publicAbsoluteUrl(resource.canonical);
   return <div className="resource-page max-w-3xl mx-auto px-4 py-10">
     <nav aria-label="Breadcrumb" className="resource-breadcrumb mb-6 text-sm text-secondary"><a className="underline" href="/">VetTrials</a><span aria-hidden="true"> / </span><span className="text-muted">Guides</span></nav>
     <h1 className="text-3xl font-bold leading-tight tracking-tight mb-3">{resource.heading}</h1>
@@ -57,7 +61,7 @@ export default async function ResourcePage({ params }: Props) {
         {cta.secondaryHref && cta.secondaryLabel && <a href={localHref(cta.secondaryHref)} className="inline-flex items-center px-4 py-2 border border-primary text-primary rounded-md text-sm font-medium hover:bg-primary/10 transition-colors">{cta.secondaryLabel}</a>}
       </div>
     </aside>}
-    <JsonLd data={{ '@context': 'https://schema.org', '@type': 'WebPage', '@id': resource.canonical, url: resource.canonical, name: resource.title, description: resource.description, inLanguage: 'en', ...(resource.updated ? { dateModified: resource.updated } : {}), ...(image ? { primaryImageOfPage: { '@type': 'ImageObject', url: image.src, caption: image.alt } } : {}), isPartOf: { '@type': 'WebSite', name: 'VetTrials', url: 'https://vettrials.org/' }, citation: [...new Set([...resource.body.matchAll(/\]\((https:\/\/(?!vettrials.org)[^)]+)\)/g)].map(m => m[1]))] }} />
-    <JsonLd data={{ '@context': 'https://schema.org', '@type': 'BreadcrumbList', itemListElement: [{ '@type': 'ListItem', position: 1, name: 'VetTrials', item: 'https://vettrials.org/' }, { '@type': 'ListItem', position: 2, name: resource.heading, item: resource.canonical }] }} />
+    <JsonLd data={{ '@context': 'https://schema.org', '@type': 'WebPage', '@id': canonical, url: canonical, name: resource.title, description: resource.description, inLanguage: 'en', ...(resource.updated ? { dateModified: resource.updated } : {}), ...(image ? { primaryImageOfPage: { '@type': 'ImageObject', url: publicAbsoluteUrl(image.src), caption: image.alt } } : {}), isPartOf: { '@type': 'WebSite', name: 'VetTrials', url: publicAbsoluteUrl('/') }, citation: [...new Set([...resource.body.matchAll(/\]\((https:\/\/(?!vettrials.org)[^)]+)\)/g)].map(m => m[1]))] }} />
+    <JsonLd data={{ '@context': 'https://schema.org', '@type': 'BreadcrumbList', itemListElement: [{ '@type': 'ListItem', position: 1, name: 'VetTrials', item: publicAbsoluteUrl('/') }, { '@type': 'ListItem', position: 2, name: resource.heading, item: canonical }] }} />
   </div>;
 }

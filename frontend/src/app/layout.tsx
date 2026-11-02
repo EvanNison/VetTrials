@@ -1,11 +1,11 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import { Providers } from "@/components/Providers";
-import { SITE_NAME, SITE_URL } from "@/lib/site";
+import { SITE_NAME, PUBLIC_SITE_URL } from "@/lib/site";
 
 
 export const metadata: Metadata = {
-  metadataBase: new URL(SITE_URL),
+  metadataBase: new URL(PUBLIC_SITE_URL),
   title: {
     default: "VetTrials: Search Veterinary Clinical Trials",
     template: `%s | ${SITE_NAME}`,
@@ -23,7 +23,7 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     siteName: SITE_NAME,
-    url: SITE_URL,
+    url: PUBLIC_SITE_URL,
     title: "VetTrials: Search Veterinary Clinical Trials",
     description:
       "Find recruiting veterinary clinical trials for dogs, cats, horses, and other animals across 30+ institutions.",
