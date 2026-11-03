@@ -1,6 +1,7 @@
 import type { MetadataRoute } from "next";
 import type { TrialSearchResponse } from "@/types";
 import { absoluteUrl, serverApiUrl } from "@/lib/site";
+import { publishedResources, resourcePreview } from "@/lib/resources";
 
 export const dynamic = "force-dynamic";
 
@@ -46,6 +47,13 @@ async function getActiveTrials(): Promise<
 }
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
+  if (resourcePreview) return [];
+  const resourcePages: MetadataRoute.Sitemap = publishedResources.map(resource => ({
+    url: absoluteUrl(resource.canonical),
+    lastModified: resource.updated,
+    changeFrequency: "monthly",
+    priority: 0.6,
+  }));
   try {
     const trials = await getActiveTrials();
     const trialPages: MetadataRoute.Sitemap = trials.map((trial) => ({
@@ -55,9 +63,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 0.7,
     }));
 
-    return [...staticPages, ...trialPages];
+    return [...staticPages, ...resourcePages, ...trialPages];
   } catch (error) {
     console.error("[SITEMAP] Unable to load trial URLs", error);
-    return staticPages;
+    return [...staticPages, ...resourcePages];
   }
 }
