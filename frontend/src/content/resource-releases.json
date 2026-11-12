@@ -1,4 +1,9 @@
 {
-  "publishedSlugs": ["canine-lymphoma-clinical-trials"],
-  "verifiedLiveSiblingSlugs": []
+  "publishedSlugs": [
+    "canine-lymphoma-clinical-trials",
+    "dog-bladder-cancer-clinical-trials"
+  ],
+  "verifiedLiveSiblingSlugs": [
+    "canine-lymphoma-clinical-trials"
+  ]
 }
